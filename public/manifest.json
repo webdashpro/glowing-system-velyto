@@ -1,0 +1,25 @@
+{
+  "name": "Velyto — Free Tools, Shop, Study & Business",
+  "short_name": "Velyto",
+  "description": "100% browser-first free tools, shop catalogues, study kits and business documents. Works offline.",
+  "id": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "categories": ["productivity", "utilities", "education", "business"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Exam Photo Resizer", "url": "/tools/exam-photo-resizer" },
+    { "name": "Image Compressor", "url": "/tools/image-compressor" },
+    { "name": "Velyto Shop", "url": "/shop" },
+    { "name": "Study", "url": "/study" }
+  ]
+}
