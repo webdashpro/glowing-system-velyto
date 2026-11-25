@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Icon } from "./Icon";
 import { useUser } from "@/lib/client";
-import { HI_SLUGS } from "@/data/hi-slugs";
 
 const Palette = dynamic(() => import("./Palette"), { ssr: false });
 
@@ -34,15 +33,9 @@ export function Logo({ className = "h-8 w-8" }: { className?: string }) {
   );
 }
 
-function langLinks(path: string): { en: string; hi: string } {
-  if (path === "/hi") return { en: "/", hi: "/hi" };
-  if (path === "/") return { en: "/", hi: "/hi" };
-  const hiTool = path.match(/^\/hi\/tools\/([^/]+)$/);
-  if (hiTool) return { en: `/tools/${hiTool[1]}`, hi: path };
-  const enTool = path.match(/^\/tools\/([^/]+)$/);
-  if (enTool && HI_SLUGS.includes(enTool[1])) return { en: path, hi: `/hi/tools/${enTool[1]}` };
-  return { en: path, hi: "/hi" };
-}
+/** Square icon button used across the header — one consistent shape, one consistent hover. */
+const iconBtn =
+  "grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-line bg-surface text-muted transition-colors hover:border-brand hover:text-brand-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
 
 export default function Header() {
   const path = usePathname() || "/";
@@ -50,7 +43,6 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [pal, setPal] = useState(false);
   const isHi = path === "/hi" || path.startsWith("/hi/");
-  const lang = langLinks(path);
 
   useEffect(() => setOpen(false), [path]);
   useEffect(() => {
@@ -75,62 +67,121 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur supports-[backdrop-filter]:bg-bg/70">
-      <div className="container-x flex h-16 items-center gap-3">
-        <Link href="/" className="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight" aria-label="Velyto home">
+      <div className="container-x flex h-16 items-center gap-2">
+        {/* Brand */}
+        <Link href="/" className="flex shrink-0 items-center gap-2 font-display text-xl font-extrabold tracking-tight" aria-label="Velyto home">
           <Logo />
           <span>Velyto</span>
         </Link>
-        <nav className="ml-6 hidden items-center gap-1 lg:flex" aria-label="Main">
+
+        {/* Primary navigation */}
+        <nav className="ml-5 hidden items-center gap-0.5 lg:flex" aria-label="Main">
           {NAV.map((n) => {
             const active = path === n.href || path.startsWith(n.href + "/");
             return (
-              <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors hover:bg-brand-soft hover:text-brand-ink ${active ? "bg-brand-soft text-brand-ink" : "text-muted"}`}>
+              <Link
+                key={n.href}
+                href={n.href}
+                aria-current={active ? "page" : undefined}
+                className={`relative rounded-lg px-3 py-2 text-sm font-semibold transition-colors hover:bg-brand-soft hover:text-brand-ink ${
+                  active ? "bg-brand-soft text-brand-ink" : "text-muted"
+                }`}
+              >
                 {n.label}
               </Link>
             );
           })}
         </nav>
-        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-          <button onClick={() => setPal(true)} className="btn btn-secondary btn-sm hidden sm:inline-flex" aria-label="Search tools (Ctrl+K)">
-            <Icon name="search" className="h-4 w-4" />
-            <span className="text-muted">Search</span>
-            <kbd className="rounded border border-line bg-soft px-1.5 py-0.5 text-[11px] font-semibold text-muted">Ctrl K</kbd>
+
+        {/* Actions */}
+        <div className="ml-auto flex items-center gap-2">
+          {/* Search — desktop pill */}
+          <button
+            onClick={() => setPal(true)}
+            className="hidden h-9 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm font-semibold text-muted shadow-sm transition-colors hover:border-brand hover:text-brand-ink sm:inline-flex"
+            aria-label="Search tools (Ctrl K)"
+          >
+            <Icon name="search" className="h-4 w-4 shrink-0" />
+            <span className="hidden lg:inline">Search</span>
+            <kbd className="hidden rounded border border-line bg-soft px-1.5 py-0.5 text-[11px] font-bold lg:inline">Ctrl K</kbd>
           </button>
-          <button onClick={() => setPal(true)} className="btn btn-ghost btn-sm sm:hidden" aria-label="Search tools">
-            <Icon name="search" />
+
+          {/* Search — mobile icon only */}
+          <button onClick={() => setPal(true)} className={`${iconBtn} sm:hidden`} aria-label="Search tools">
+            <Icon name="search" className="h-5 w-5" />
           </button>
-          <div className="hidden items-center rounded-lg border border-line p-0.5 text-xs font-bold md:flex" role="group" aria-label="Language">
-            <Link href={lang.en} hrefLang="en" aria-current={!isHi ? "true" : undefined} className={`rounded-md px-2 py-1 ${!isHi ? "bg-brand text-white" : "text-muted hover:text-fg"}`}>EN</Link>
-            <Link href={lang.hi} hrefLang="hi" lang="hi" aria-current={isHi ? "true" : undefined} className={`rounded-md px-2 py-1 ${isHi ? "bg-brand text-white" : "text-muted hover:text-fg"}`}>हिंदी</Link>
-          </div>
-          <button onClick={toggleTheme} className="btn btn-ghost btn-sm" aria-label="Toggle dark mode">
-            <Icon name="moon" className="h-5 w-5 dark:hidden" />
-            <Icon name="sun" className="hidden h-5 w-5 dark:block" />
+
+          {/* Hindi pages only: a single quiet way back to English (never shown on English pages) */}
+          {isHi && (
+            <Link
+              href="/"
+              className="hidden h-9 items-center rounded-lg border border-line bg-surface px-3 text-xs font-bold text-muted transition-colors hover:border-brand hover:text-brand-ink md:inline-flex"
+              hrefLang="en"
+            >
+              English
+            </Link>
+          )}
+
+          {/* Theme toggle — inline SVG so it can never render as an empty blob */}
+          <button onClick={toggleTheme} className={iconBtn} aria-label="Toggle dark mode" title="Toggle dark mode">
+            <svg viewBox="0 0 24 24" className="h-[18px] w-[18px] dark:hidden" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" />
+            </svg>
+            <svg viewBox="0 0 24 24" className="hidden h-[18px] w-[18px] dark:block" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+            </svg>
           </button>
-          <div className="hidden min-w-[9.5rem] items-center justify-end gap-1 md:flex">
+
+          {/* Account — fixed-width wrapper so the header never jumps while auth loads */}
+          <div className="hidden min-w-[9.5rem] items-center justify-end gap-2 border-l border-line pl-3 md:flex">
             {user === undefined ? null : user ? (
-              <Link href="/dashboard" className="btn btn-primary btn-sm"><Icon name="user" className="h-4 w-4" />Dashboard</Link>
+              <Link href="/dashboard" className="btn btn-primary btn-sm">
+                <Icon name="user" className="h-4 w-4" />
+                Dashboard
+              </Link>
             ) : (
               <>
-                <Link href="/login" className="btn btn-ghost btn-sm">Log in</Link>
-                <Link href="/signup" className="btn btn-primary btn-sm">Sign up</Link>
+                <Link href="/login" className="rounded-lg px-2.5 py-2 text-sm font-semibold text-muted transition-colors hover:text-brand-ink">
+                  Log in
+                </Link>
+                <Link href="/signup" className="btn btn-primary btn-sm">
+                  Sign up
+                </Link>
               </>
             )}
           </div>
-          <button className="btn btn-ghost btn-sm lg:hidden" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="mobile-nav" aria-label="Menu">
-            <Icon name={open ? "x" : "menu"} />
+
+          {/* Mobile menu */}
+          <button
+            className={`${iconBtn} text-fg lg:hidden`}
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            aria-controls="mobile-nav"
+            aria-label="Menu"
+          >
+            <Icon name={open ? "x" : "menu"} className="h-5 w-5" />
           </button>
         </div>
       </div>
+
       {open && (
         <nav id="mobile-nav" className="border-t border-line bg-bg lg:hidden" aria-label="Mobile">
           <div className="container-x grid gap-1 py-3">
-            {NAV.map((n) => (
-              <Link key={n.href} href={n.href} className="rounded-lg px-3 py-2.5 font-semibold hover:bg-brand-soft">{n.label}</Link>
-            ))}
+            {NAV.map((n) => {
+              const active = path === n.href || path.startsWith(n.href + "/");
+              return (
+                <Link
+                  key={n.href}
+                  href={n.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`rounded-lg px-3 py-2.5 font-semibold ${active ? "bg-brand-soft text-brand-ink" : "text-fg hover:bg-brand-soft"}`}
+                >
+                  {n.label}
+                </Link>
+              );
+            })}
             <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-line pt-3">
-              <Link href={lang.en} className="chip" aria-current={!isHi ? "true" : undefined}>EN</Link>
-              <Link href={lang.hi} className="chip" lang="hi" aria-current={isHi ? "true" : undefined}>हिंदी</Link>
               {user ? (
                 <Link href="/dashboard" className="btn btn-primary btn-sm ml-auto">Dashboard</Link>
               ) : (
@@ -143,6 +194,7 @@ export default function Header() {
           </div>
         </nav>
       )}
+
       {pal && <Palette onClose={() => setPal(false)} />}
     </header>
   );
@@ -153,7 +205,7 @@ export function PaletteButton({ className = "" }: { className?: string }) {
   const [pal, setPal] = useState(false);
   return (
     <>
-      <button onClick={() => setPal(true)} className={`group flex w-full items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3.5 text-left shadow-soft transition-colors hover:border-brand ${className}`} aria-label="Search 34 free tools (Ctrl+K)">
+      <button onClick={() => setPal(true)} className={`group flex w-full items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3.5 text-left shadow-soft transition-colors hover:border-brand ${className}`} aria-label="Search 34 free tools (Ctrl K)">
         <Icon name="search" className="h-5 w-5 text-brand-link" />
         <span className="flex-1 text-muted">Search 34 free tools — try “compress image”, “GST”, “JSON”…</span>
         <kbd className="hidden rounded-md border border-line bg-soft px-2 py-1 text-xs font-bold text-muted sm:inline">Ctrl K</kbd>
